@@ -5,6 +5,7 @@ import {
   expectedObj,
 } from '../__mocks__/getAdviceApi';
 import nock from 'nock';
+import nconf from 'nconf';
 
 describe('Get an advice object to save in BBDD', () => {
   it('getAdviceObj returns an expected object', () => {
@@ -14,11 +15,11 @@ describe('Get an advice object to save in BBDD', () => {
 });
 
 describe('Get an advice object from external api to save in BBDD', () => {
-  const SERVER_HOST = 'https://api.adviceslip.com';
+  const SERVER_HOST = nconf.get('API_URL_base');
 
   it('queryAdvice get an expected object from external api using "hair" word', async () => {
     const query = 'hair';
-    const url = `/advice/search/${query}`;
+    const url = `${nconf.get('API_URL')}/${query}`;
     nock(SERVER_HOST).get(`${url}`).reply(200, queryResponseJSON);
     const response = await queryAdvice(query);
     console.log('response :>> ', response);

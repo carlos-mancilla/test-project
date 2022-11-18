@@ -7,6 +7,9 @@ import {
   queryNullResponseJSON,
   queryResponseJSON,
 } from '../../app/advice/controllers/__mocks__/getAdviceApi';
+import nconf from 'nconf';
+
+const SERVER_HOST = nconf.get('API_URL_BASE');
 
 describe('test local API request', () => {
   describe('POST /advice', () => {
@@ -21,9 +24,8 @@ describe('test local API request', () => {
     });
     describe('if query "hair" word is passed get an advice', () => {
       const query = 'hair';
-      const SERVER_HOST = 'https://api.adviceslip.com';
-      const url = `/advice/search/${query}`;
-      nock(SERVER_HOST).get(`${url}`).reply(200, queryResponseJSON);
+      const url = `${nconf.get('API_URL')}/${query}`;
+      nock(SERVER_HOST).get(`${url}`).reply(200, queryResponseJSON[query]);
       it('returns an advice messaje', async () => {
         const { statusCode } = await request(app)
           .post('/advice')
@@ -34,8 +36,7 @@ describe('test local API request', () => {
     });
     describe('if query "snake" word is passed not get an advice', () => {
       const query = 'snake';
-      const SERVER_HOST = 'https://api.adviceslip.com';
-      const url = `/advice/search/${query}`;
+      const url = `${nconf.get('API_URL')}/${query}`;
       nock(SERVER_HOST).get(`${url}`).reply(200, queryNullResponseJSON);
       it('returns an not found messaje', async () => {
         const { statusCode } = await request(app)
@@ -45,13 +46,18 @@ describe('test local API request', () => {
         expect(statusCode).toBe(404);
       });
     });
-    describe('if query "long hair" words are passed get an bad request error', () => {
-      it('returns an bad requets messaje', async () => {
+    describe('if query "hair spider dog" words are passed get an advice by each one', () => {
+      it('returns an array with messages and 201 status code', async () => {
+        const words = 'hair spider dog'.split(' ');
+        words.forEach((w) => {
+          const url = `${nconf.get('API_URL')}/${w}`;
+          nock(SERVER_HOST).get(`${url}`).reply(200, queryResponseJSON[w]);
+        });
         const { statusCode } = await request(app)
           .post('/advice')
-          .send({ query: 'long hair' });
+          .send({ query: 'hair spider dog' });
 
-        expect(statusCode).toBe(400);
+        expect(statusCode).toBe(201);
       });
     });
   });
