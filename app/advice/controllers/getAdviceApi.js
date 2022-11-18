@@ -26,10 +26,10 @@ async function getAdvice(req, res) {
       words.forEach((w) => {
         advicesRequest.push(queryAdvice(w));
       });
-      const advicesGroup = await Promise.all(advicesRequest);
+      const advicesGroup = await Promise.allSettled(advicesRequest);
       for (let adviceAPI of advicesGroup) {
-        if (adviceAPI.slips) {
-          const advice = getAdviceObj(adviceAPI.slips[0]);
+        if (adviceAPI.status === 'fulfilled' && adviceAPI.value.slips) {
+          const advice = getAdviceObj(adviceAPI.value.slips[0]);
           await insertAdvice(advice);
           advices.push(advice.advice);
         }
